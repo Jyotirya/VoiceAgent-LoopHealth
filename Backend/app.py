@@ -4,7 +4,6 @@ from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 from ai_agent import get_ai_response
 from voice_service import transcribe_audio, text_to_speech
-from twilio.twiml.voice_response import VoiceResponse
 
 app = Flask(__name__)
 CORS(app)
@@ -67,73 +66,6 @@ def chat_voice():
 @app.route('/')
 def home():
     return "✅ Loop AI Backend is Running! Connect your Frontend now."
-
-
-# --- ADD THESE IMPORTS AT THE TOP ---
-
-
-# --- ADD THESE NEW ROUTES BEFORE if __name__ == '__main__': ---
-
-@app.route("/twilio/incoming", methods=['POST'])
-def twilio_incoming_call():
-    """
-    Handles the start of a phone call.
-    """
-    resp = VoiceResponse()
-    
-    # 1. Greet the user using Twilio's voice
-    # 'gather' listens for the user's reply
-    gather = resp.gather(
-        input='speech',  # Use Twilio's Speech-to-Text
-        action='/twilio/handle-speech', # Send result to this route
-        timeout=3,       # Wait 3 seconds for silence
-        language='en-IN' # Indian English accent
-    )
-    
-    gather.say("Hello, I am Loop AI. How can I assist you with your hospital search?", voice='alice')
-    
-    # If user doesn't say anything, loop back
-    resp.redirect('/twilio/incoming')
-    
-    return str(resp)
-
-@app.route("/twilio/handle-speech", methods=['POST'])
-def twilio_handle_speech():
-    """
-    Receives the text from Twilio, asks Gemini, and speaks back.
-    """
-    # 1. Get what the user said (Text)
-    user_speech = request.values.get('SpeechResult', '')
-    
-    print(f"📞 Phone User said: {user_speech}")
-    
-    if not user_speech:
-        resp = VoiceResponse()
-        resp.say("I didn't catch that. Could you say it again?", voice='alice')
-        resp.redirect('/twilio/incoming')
-        return str(resp)
-
-    # 2. Ask your RAG Brain (Gemini)
-    # We reuse the SAME logic you built for the web!
-    ai_response_text = get_ai_response(user_speech)
-    print(f"🤖 AI Replying to Phone: {ai_response_text}")
-
-    # 3. Speak the answer back
-    resp = VoiceResponse()
-    gather = resp.gather(
-        input='speech', 
-        action='/twilio/handle-speech', 
-        timeout=3
-    )
-    
-    # remove asterisks if any, as they sound weird in TTS
-    clean_response = ai_response_text.replace("*", "") 
-    gather.say(clean_response, voice='alice')
-    
-    # Keep the conversation open (loop)
-    resp.redirect('/twilio/incoming')
-    
-    return str(resp)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

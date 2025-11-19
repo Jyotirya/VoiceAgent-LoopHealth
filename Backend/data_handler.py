@@ -50,6 +50,9 @@ class HospitalRAG:
             print(f"❌ Error initializing RAG: {e}")
 
     def search(self, query, k=3):
+        """
+        Executes the full RAG Retrieval Pipeline
+        """
         if self.index is None:
             return "Error: RAG Database not initialized."
 

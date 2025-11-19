@@ -33,6 +33,9 @@ def transcribe_audio(file_path):
         if os.path.exists(wav_path): os.remove(wav_path)
 
 def text_to_speech(text, output_file_path):
+    """
+    TTS: Uses gTTS (100% Free, No API Key needed)
+    """
     try:
         print("📢 Generating Voice (Google Free Tier)...")
         
