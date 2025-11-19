@@ -1,0 +1,8 @@
+flask
+flask-cors
+pandas
+python-dotenv
+google-generativeai
+speechrecognition
+pydub
+twilio
